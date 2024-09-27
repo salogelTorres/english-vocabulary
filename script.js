@@ -31,32 +31,76 @@ const words = [
 
 let currentWordIndex = 0;
 let history = [];
+let incorrectWords = JSON.parse(localStorage.getItem("incorrectWords")) || [];
 
 // Función para seleccionar una palabra aleatoria
 function getRandomWordIndex() {
   return Math.floor(Math.random() * words.length);
 }
 
+// Función para normalizar el texto y eliminar las tildes
+function normalizeText(text) {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
 function showWord() {
-  currentWordIndex = getRandomWordIndex(); // Selecciona una palabra aleatoria
+  // Si hay palabras incorrectas en el LocalStorage, selecciona una aleatoria
+  if (incorrectWords.length > 0 && Math.random() > 0.85) {
+    const randomIndex = Math.floor(Math.random() * incorrectWords.length);
+    currentWordIndex = words.findIndex(
+      (word) => word.english === incorrectWords[randomIndex].english
+    );
+  } else {
+    // Selecciona una palabra aleatoria del total
+    currentWordIndex = getRandomWordIndex();
+  }
+
   const wordElement = document.getElementById("word");
   wordElement.textContent = words[currentWordIndex].english; // Muestra la palabra en inglés
 }
 
 function checkAnswer() {
-  const answer = document.getElementById("answer").value.trim().toLowerCase();
+  const answer = document.getElementById("answer").value.trim();
   const resultElement = document.getElementById("result");
 
   let isCorrect = false;
 
-  if (answer === words[currentWordIndex].spanish.toLowerCase()) {
+  if (
+    normalizeText(answer) === normalizeText(words[currentWordIndex].spanish)
+  ) {
     // Compara la respuesta en español
     resultElement.textContent = "¡Correcto!";
     resultElement.style.color = "green";
     isCorrect = true;
+
+    // Si acertó una palabra que antes era incorrecta
+    if (
+      incorrectWords.some(
+        (word) => word.english === words[currentWordIndex].english
+      )
+    ) {
+      removeFromIncorrect(words[currentWordIndex].english);
+      resultElement.textContent +=
+        " ¡Has corregido una palabra que antes tenías mal!";
+    }
   } else {
     resultElement.textContent = `Incorrecto. La respuesta correcta es: ${words[currentWordIndex].spanish}`;
     resultElement.style.color = "red";
+
+    // Añadir al localStorage si la palabra no está ya registrada como incorrecta
+    if (
+      !incorrectWords.some(
+        (word) => word.english === words[currentWordIndex].english
+      )
+    ) {
+      addToIncorrect(
+        words[currentWordIndex].english,
+        words[currentWordIndex].spanish
+      );
+    }
   }
 
   // Añadir palabra al historial
@@ -94,6 +138,23 @@ function nextWord() {
   showWord(); // Muestra una nueva palabra aleatoria
 }
 
+function addToIncorrect(english, spanish) {
+  incorrectWords.push({ english, spanish });
+  localStorage.setItem("incorrectWords", JSON.stringify(incorrectWords));
+}
+
+function removeFromIncorrect(english) {
+  incorrectWords = incorrectWords.filter((word) => word.english !== english);
+  localStorage.setItem("incorrectWords", JSON.stringify(incorrectWords));
+}
+
+// Cargar historial de palabras incorrectas desde LocalStorage
+function loadIncorrectWords() {
+  incorrectWords.forEach((word) => {
+    addToHistory(word.english, "(sin respuesta)", false);
+  });
+}
+
 // Detectar la tecla Enter
 document.getElementById("answer").addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
@@ -102,4 +163,7 @@ document.getElementById("answer").addEventListener("keydown", function (event) {
 });
 
 // Mostrar la primera palabra al cargar la página
-window.onload = showWord;
+window.onload = function () {
+  loadIncorrectWords(); // Cargar historial previo
+  showWord(); // Mostrar nueva palabra
+};
