@@ -30,6 +30,7 @@ const words = [
 ];
 
 let currentWordIndex = 0;
+let history = [];
 
 // Función para seleccionar una palabra aleatoria
 function getRandomWordIndex() {
@@ -39,20 +40,52 @@ function getRandomWordIndex() {
 function showWord() {
   currentWordIndex = getRandomWordIndex(); // Selecciona una palabra aleatoria
   const wordElement = document.getElementById("word");
-  wordElement.textContent = words[currentWordIndex].english;
+  wordElement.textContent = words[currentWordIndex].english; // Muestra la palabra en inglés
 }
 
 function checkAnswer() {
   const answer = document.getElementById("answer").value.trim().toLowerCase();
   const resultElement = document.getElementById("result");
 
+  let isCorrect = false;
+
   if (answer === words[currentWordIndex].spanish.toLowerCase()) {
+    // Compara la respuesta en español
     resultElement.textContent = "¡Correcto!";
     resultElement.style.color = "green";
+    isCorrect = true;
   } else {
     resultElement.textContent = `Incorrecto. La respuesta correcta es: ${words[currentWordIndex].spanish}`;
     resultElement.style.color = "red";
   }
+
+  // Añadir palabra al historial
+  addToHistory(words[currentWordIndex].english, answer, isCorrect);
+}
+
+function addToHistory(word, answer, isCorrect) {
+  // Crear elemento de lista
+  const historyList = document.getElementById("historyList");
+  const listItem = document.createElement("li");
+
+  // Crear texto para mostrar en el historial
+  const resultText = isCorrect ? "correcta" : "incorrecta";
+  listItem.textContent = `Palabra: ${word} - Tu respuesta: ${
+    answer || "(sin respuesta)"
+  }`;
+
+  // Añadir la clase correcta
+  if (isCorrect) {
+    listItem.classList.add("correct");
+  } else {
+    listItem.classList.add("incorrect");
+  }
+
+  // Añadir el nuevo elemento a la lista
+  historyList.appendChild(listItem);
+
+  // Añadir al array de historial (opcional si necesitas hacer algo más adelante con los datos)
+  history.push({ word, answer, isCorrect });
 }
 
 function nextWord() {
