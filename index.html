@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aprender Vocabulario Inglés</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Aprender Vocabulario Inglés</h1>
+      <p>Traduce la palabra:</p>
+      <h2 id="word"></h2>
+      <input type="text" id="answer" placeholder="Escribe la traducción" />
+      <button class="btn" onclick="checkAnswer()">Verificar</button>
+      <p id="result"></p>
+      <button class="btn secondary" onclick="nextWord()">
+        Siguiente palabra
+      </button>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
